@@ -1,0 +1,287 @@
+{
+  "name": "step 4",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -48
+      ],
+      "id": "f5e72895-dec0-4c74-9f46-e23c0dc4a98b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://btthgchybsqubgmgkxod.supabase.co/rest/v1/threads?thread_summary=is.null",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"thread_id\":\"{{$json.thread_id}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -464,
+        -48
+      ],
+      "id": "60acd00d-2aa8-41ec-af27-7d87ed48a69e",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "=https://btthgchybsqubgmgkxod.supabase.co/rest/v1/emails?thread_id=eq.{{$json.thread_id}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"thread_id\":\"{{$json.thread_id}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        -48
+      ],
+      "id": "b15734c9-c16e-4482-8405-c2a6ad15903a",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "let combinedText = \"\";\n\nfor (const item of $input.all()) {\n  combinedText += item.json.body + \"\\n\\n\";\n}\n\nreturn [\n{\njson:{\nthread_id:$input.first().json.thread_id,\nconversation:combinedText\n}\n}\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -48
+      ],
+      "id": "4614b047-61ba-45e8-9575-608f1d758e10",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an email assistant.\n\nBelow is an email thread containing multiple emails.\n\nConversation:\n\n{{$json.conversation}}\n\nCreate a concise summary of the entire thread.\n\nReturn ONLY valid JSON in this format:\n\n{\n\"thread_summary\":\"\"\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        -48
+      ],
+      "id": "7efa45e1-5bbf-40e2-b82c-ca1edb3d268b",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        160
+      ],
+      "id": "487ec696-405b-40fc-9272-f2cfbb5a76de",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "GgDYOhVBhQ9HqqXq",
+          "name": "20260324 - OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = JSON.parse($json.output);\n\nreturn {\n  thread_summary: data.thread_summary\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -32
+      ],
+      "id": "44a8951f-ef21-4bf0-83f1-8e7a369ae27f",
+      "name": "Code in JavaScript1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://btthgchybsqubgmgkxod.supabase.co/rest/v1/threads?thread_id=eq.{{ $('HTTP Request').item.json.thread_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"thread_summary\":\"{{$json.thread_summary}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        528,
+        -32
+      ],
+      "id": "ec1eb407-87bd-428d-b678-87dbe4e0c232",
+      "name": "HTTP Request2",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "67ab5e40-39c5-442f-9383-4bdd9c4c7ad3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ee8ad7a4058434c02c4f75262820f6417504a83252abcb13464c25cf7bacd46"
+  },
+  "id": "RfHC8rZsjshbuuLR",
+  "tags": []
+}

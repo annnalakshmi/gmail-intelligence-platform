@@ -1,0 +1,179 @@
+{
+  "name": "step 5",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -48
+      ],
+      "id": "87ce486f-8a3b-4b29-a64c-e8eb17eca735",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://btthgchybsqubgmgkxod.supabase.co/rest/v1/emails?embedding=is.null",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -560,
+        -48
+      ],
+      "id": "5ceead50-b97c-4fb1-b52b-85d336b07312",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=AQ.Ab8RN6IfP1aprMPTbJBddptcT71iqrIbbZ3o_qCXRJ4YFgLCmg",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\":\"models/text-embedding-004\",\n  \"content\":{\n    \"parts\":[\n      {\n        \"text\":\"{{$json.body}}\"\n      }\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -368,
+        -48
+      ],
+      "id": "a78066ba-ce97-4935-b6cf-82ca31097631",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    id: $('HTTP Request').item.json.id,\n    embedding: $json.embedding.values\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -48
+      ],
+      "id": "16d26e8d-d40d-493d-bc1a-0557fba12bb8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://btthgchybsqubgmgkxod.supabase.co/rest/v1/emails?id=eq.{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"embedding\": $json.embedding\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -32,
+        -48
+      ],
+      "id": "b20b6f16-6ea9-44cc-920f-a1c3d54fda46",
+      "name": "HTTP Request2",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "146a69c1-7b2f-4c9e-9fb5-a5b7247a0157",
+  "meta": {
+    "instanceId": "9ee8ad7a4058434c02c4f75262820f6417504a83252abcb13464c25cf7bacd46"
+  },
+  "id": "8k5NwdSbvx60GqfV",
+  "tags": []
+}

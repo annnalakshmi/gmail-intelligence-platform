@@ -1,0 +1,160 @@
+{
+  "name": "step 1",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -16
+      ],
+      "id": "9db2f542-e32e-41ea-bf3e-c2eff8b8185c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "310be321-ba41-468c-934d-6afde31d92e7",
+      "name": "Get many messages",
+      "webhookId": "242da7dc-71a5-48d0-88a1-cf1d5af87cef",
+      "alwaysOutputData": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zDO04gJXedWw8Bkv",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      message_id: item.json.id || \"\",\n      thread_id: item.json.threadId || \"\",\n\n      sender: item.json.From || \"\",\n      recipient: item.json.To || \"\",\n      subject: item.json.Subject || \"\",\n\n      body: item.json.snippet || \"\",\n      snippet: item.json.snippet || \"\",\n\n      received_at: item.json.internalDate\n        ? new Date(Number(item.json.internalDate)).toISOString()\n        : new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -16
+      ],
+      "id": "8f4f660b-1bc0-4ffd-ac9d-f7dc3f09df89",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "__CUSTOM_API_CALL__"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        112
+      ],
+      "id": "e598bbcc-fe14-45d3-be20-30a29c149cc7",
+      "name": "__CUSTOM_API_CALL__ row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ifrrnUYoAhUS2eGZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://btthgchybsqubgmgkxod.supabase.co/rest/v1/emails?on_conflict=message_id",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message_id\": \"{{$json.message_id}}\",\n  \"thread_id\": \"{{$json.thread_id}}\",\n  \"sender\": \"{{$json.sender}}\",\n  \"recipient\": \"{{$json.recipient}}\",\n  \"subject\": \"{{$json.subject}}\",\n  \"body\": \"{{$json.body}}\",\n  \"snippet\": \"{{$json.snippet}}\",\n  \"received_at\": \"{{$json.received_at}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        272,
+        -16
+      ],
+      "id": "126ccd80-addc-40f0-992a-8edbbca066bf",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a4cd5aed-052d-4e6c-81e3-346e4e92a3dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ee8ad7a4058434c02c4f75262820f6417504a83252abcb13464c25cf7bacd46"
+  },
+  "id": "P5B26rt1AHbf1adt",
+  "tags": []
+}

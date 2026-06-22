@@ -1,0 +1,255 @@
+{
+  "name": "step 7",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ask-ai-rag",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1168,
+        -64
+      ],
+      "id": "cf2c24bd-71d1-4894-84b9-eff905c00699",
+      "name": "Webhook",
+      "webhookId": "7f127c95-8885-482f-b4e2-7ec5421733a8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=AIzaSyDrlEbtcJSo60FLWYAQm5_FYeGvOjDQXvs",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"models/gemini-embedding-001\",\n  \"content\": {\n    \"parts\": [\n      {\n        \"text\": \"{{ $('Webhook').first().json.body.question }}\"\n      }\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1008,
+        -64
+      ],
+      "id": "68c266d6-ad41-4839-9d83-f529e0645904",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    question: $('Webhook').first().json.body.question,\n    embedding: $json.embedding.values\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        -64
+      ],
+      "id": "2bcd0f27-84dc-4654-975c-83b0ef570466",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://btthgchybsqubgmgkxod.supabase.co/rest/v1/rpc/match_emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query_embedding\": {{ JSON.stringify($json.embedding) }},\n  \"match_count\": 5\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -656,
+        -64
+      ],
+      "id": "9529ca65-31ab-419b-900c-10063ec540d1",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "let context = \"\";\n\nfor (const item of $input.all()) {\n  context += `\nSubject: ${item.json.subject}\n\nSummary: ${item.json.summary}\n\nCategory: ${item.json.category}\n\n-------------------\n`;\n}\n\nreturn [{\n  json: {\n    question: $('Webhook').first().json.body.question,\n    context\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        -64
+      ],
+      "id": "31e5d05d-e81c-4112-b2a8-4088956a46c5",
+      "name": "Code in JavaScript1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an email assistant.\n\nUse ONLY the context below to answer the user's question.\n\nQuestion:\n{{ $json.question }}\n\nContext:\n{{ $json.context }}\n\nInstructions:\n- Answer only from the provided context.\n- If company names are mentioned, list them.\n- If no information exists, say \"No relevant information found.\"\n\nAnswer:",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -400,
+        -64
+      ],
+      "id": "048659b7-6ac9-4574-8a0a-070a545ce74e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        128
+      ],
+      "id": "b56088e7-8085-472f-a0a3-559971666437",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "GgDYOhVBhQ9HqqXq",
+          "name": "20260324 - OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n{\n  answer: $('AI Agent').first().json.output\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -112,
+        -64
+      ],
+      "id": "3489e1c3-8545-441b-a487-3b840ef5b35d",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "845a5abc-d0af-40be-829e-e2bc665d53a7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ee8ad7a4058434c02c4f75262820f6417504a83252abcb13464c25cf7bacd46"
+  },
+  "id": "RZxewF4KsNQXwYd9",
+  "tags": []
+}

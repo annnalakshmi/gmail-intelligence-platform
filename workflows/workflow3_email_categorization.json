@@ -1,0 +1,149 @@
+{
+  "name": "step 3",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -96
+      ],
+      "id": "28d1925c-7136-4f26-be49-ca16f399332c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://btthgchybsqubgmgkxod.supabase.co/rest/v1/emails?select=thread_id",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -512,
+        -96
+      ],
+      "id": "459661e8-a1b0-418a-85f4-8454ba836402",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const uniqueThreads = [...new Set($input.all().map(item => item.json.thread_id))];\n\nreturn uniqueThreads.map(threadId => ({\n  json: {\n    thread_id: threadId\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -96
+      ],
+      "id": "09810f0b-b93e-4988-a662-47fea3875313",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://btthgchybsqubgmgkxod.supabase.co/rest/v1/threads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_d5Q8kkLxORJZdOnSOOLPqQ_sF6_Rns7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"thread_id\":\"{{$json.thread_id}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        16,
+        -112
+      ],
+      "id": "803b5ec6-169f-4c99-948f-9297aa337cea",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b83d28e9-ef9d-4e09-84bc-8e0cbf1bbeb0",
+  "meta": {
+    "instanceId": "9ee8ad7a4058434c02c4f75262820f6417504a83252abcb13464c25cf7bacd46"
+  },
+  "id": "2BacQW6timg3eWYC",
+  "tags": []
+}
